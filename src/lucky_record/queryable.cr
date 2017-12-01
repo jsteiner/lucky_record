@@ -41,7 +41,7 @@ module LuckyRecord::Queryable(T)
 
   def first
     query.limit(1)
-    exec_query.first
+    results.first
   end
 
   def count : Int64
@@ -55,8 +55,18 @@ module LuckyRecord::Queryable(T)
     end
   end
 
+  getter preloads = [] of Array(T) -> Nil
+
+  def add_preload(&block : Array(T) -> Nil)
+    @preloads << block
+  end
+
   def results
-    exec_query
+    records = exec_query
+
+    preloads.each(&.call(records))
+
+    records
   end
 
   private def exec_query
